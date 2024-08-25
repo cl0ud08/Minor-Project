@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Optimal Route Finder</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+</head>
+<body>
+    <div id="map" style="height: 600px;"></div>
+    <button id="route1Button">Route 1</button>
+    <button id="route2Button">Route 2</button>
+    <button id="route3Button">Route 3</button>
+    <button id="optimalButtonDijkstra">Find Optimal Route (Dijkstra)</button>
+    <button id="optimalButtonAStar">Find Optimal Route (A*)</button>
+
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([28.6139, 77.2090], 11); // Center on Delhi
+
+        // Add a tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Initialize route layer and markers
+        var routeLayer = L.layerGroup().addTo(map);
+        var markers = [];
+
+        // Locations based on routes
+        var locations = {
+            'Delhi': [28.6139, 77.2090],
+            'Connaught Place': [28.6271, 77.2080],
+            'Rajiv Chowk': [28.6290, 77.2110],
+            'Karol Bagh': [28.6530, 77.2110],
+            'Ghaziabad': [28.6692, 77.4538],
+            'Sahibabad': [28.6876, 77.4636],
+            'Vasundhara': [28.6881, 77.4127],
+            'Indirapuram': [28.6713, 77.3975],
+            'Noida': [28.5829, 77.3236],
+            'Sector 62': [28.5916, 77.3326],
+            'Sector 50': [28.5880, 77.3396],
+            'Sector 15': [28.5835, 77.3307],
+            'Noida Sector 37': [28.5600, 77.3094], // Common destination
+
+            'South Delhi': [28.5500, 77.2000],
+            'Saket': [28.5167, 77.2036],
+            'Hauz Khas': [28.5535, 77.2071],
+            'Okhla': [28.5574, 77.2074],
+            'Delhi-Ghaziabad Border': [28.6284, 77.2614],
+            'Cross the DND Flyway': [28.6184, 77.2844],
+            'Sector 18': [28.5783, 77.3095],
+            'Sector 25': [28.5800, 77.3090],
+
+            'India Gate': [28.6139, 77.2295],
+            'Greater Noida': [28.4845, 77.5087],
+            'Pari Chowk': [28.4854, 77.5194],
+            'Knowledge Park': [28.4845, 77.5105],
+            'Sector 63': [28.5916, 77.3326]
+        };
+
+        // Example traffic data
+        var trafficAreas = {
+            'Karol Bagh': 'orange',
+            'Indirapuram': 'red',
+            'Saket': 'red',
+            'Okhla': 'orange',
+            'Noida Sector 37': 'orange'
+        };
+
+        // Define edges with distances (example distances for demonstration)
+        var graph = {
+            'Delhi': {'Connaught Place': 2, 'South Delhi': 10},
+            'Connaught Place': {'Rajiv Chowk': 1, 'India Gate': 3, 'Delhi': 2},
+            'Rajiv Chowk': {'Karol Bagh': 3, 'Connaught Place': 1},
+            'Karol Bagh': {'Ghaziabad': 12, 'Rajiv Chowk': 3},
+            'Ghaziabad': {'Sahibabad': 2, 'Karol Bagh': 12},
+            'Sahibabad': {'Vasundhara': 3, 'Ghaziabad': 2},
+            'Vasundhara': {'Indirapuram': 3, 'Sahibabad': 3},
+            'Indirapuram': {'Noida': 8, 'Vasundhara': 3},
+            'Noida': {'Sector 62': 2, 'Sector 18': 2, 'Indirapuram': 8},
+            'Sector 62': {'Sector 50': 4, 'Sector 63': 2},
+            'Sector 50': {'Sector 15': 2, 'Sector 62': 4},
+            'Sector 15': {'Noida Sector 37': 3, 'Sector 50': 2},
+            'Noida Sector 37': {},
+            'South Delhi': {'Saket': 4, 'Delhi': 10},
+            'Saket': {'Hauz Khas': 2, 'South Delhi': 4},
+            'Hauz Khas': {'Okhla': 3, 'Saket': 2},
+            'Okhla': {'Delhi-Ghaziabad Border': 8, 'Hauz Khas': 3},
+            'Delhi-Ghaziabad Border': {'Cross the DND Flyway': 4, 'Okhla': 8},
+            'Cross the DND Flyway': {'Noida': 4, 'Delhi-Ghaziabad Border': 4},
+            'Sector 18': {'Sector 25': 1, 'Noida': 2},
+            'Sector 25': {'Noida Sector 37': 2, 'Sector 18': 1},
+            'India Gate': {'Connaught Place': 3, 'Greater Noida': 20},
+            'Greater Noida': {'Pari Chowk': 5, 'India Gate': 20},
+            'Pari Chowk': {'Knowledge Park': 1, 'Greater Noida': 5},
+            'Knowledge Park': {'Sector 63': 10, 'Pari Chowk': 1},
+            'Sector 63': {'Noida Sector 37': 4, 'Knowledge Park': 10}
+        };
+
+        // Routes definitions
+        var route1 = ['Delhi', 'Connaught Place', 'Rajiv Chowk', 'Karol Bagh', 'Ghaziabad', 'Sahibabad', 'Vasundhara', 'Indirapuram', 'Noida', 'Sector 62', 'Sector 50', 'Sector 15', 'Noida Sector 37'];
+        var route2 = ['Delhi', 'South Delhi', 'Saket', 'Hauz Khas', 'Okhla', 'Delhi-Ghaziabad Border', 'Cross the DND Flyway', 'Noida', 'Sector 18', 'Sector 25', 'Noida Sector 37'];
+        var route3 = ['Delhi', 'Connaught Place', 'India Gate', 'Greater Noida', 'Pari Chowk', 'Knowledge Park', 'Sector 63', 'Noida Sector 37'];
+
+        // Function to update sidebar (placeholder)
+        function updateSidebarActiveLocation(location) {
+            console.log("Current Location: " + location);
+        }
+
+        // Function to show alerts for traffic
+        function showAlert(message) {
+            alert(message);
+        }
+
+        // Function to close alerts (placeholder)
+        function closeAlert() {
+            // Close alert logic here if needed
+        }
+
+        // Function to animate marker (placeholder)
+        function animateMarker(latLngs, duration, marker, location) {
+            // Animation logic here if needed
+        }
+
+        // Step-by-step route visualization
+        function updateRouteStepByStep(route, trafficHighlight = false) {
+            routeLayer.clearLayers();
+            markers.forEach(marker => marker.remove());
+            markers.length = 0;
+
+            let index = 0;
+
+            function nextStep() {
+                if (index < route.length) {
+                    const currentLoc = route[index];
+                    const nextLoc = route[index + 1];
+
+                    if (trafficHighlight && trafficAreas[currentLoc]) {
+                        showAlert(`Traffic detected at ${currentLoc}. Consider rerouting!`);
+                    } else {
+                        closeAlert();
+                    }
+
+                    let markerOptions;
+
+                    if (index === 0) {
+                        markerOptions = {
+                            color: 'blue',
+                            radius: 10,
+                            fillColor: 'black',
+                            fillOpacity: 0.9,
+                            weight: 3
+                        };
+                    } else if (currentLoc === 'Noida') {
+                        markerOptions = {
+                            color: 'red',
+                            radius: 10,
+                            fillColor: 'black',
+                            fillOpacity: 0.9,
+                            weight: 3
+                        };
+                    } else if (index === route.length - 1) {
+                        markerOptions = {
+                            color: 'green',
+                            radius: 10,
+                            fillColor: 'black',
+                            fillOpacity: 0.9,
+                            weight: 3
+                        };
+                    } else {
+                        markerOptions = {
+                            color: 'orange',
+                            radius: 10,
+                            fillColor: 'black',
+                            fillOpacity: 0.9,
+                            weight: 3
+                        };
+                    }
+
+                    if (index === 0) {
+                        markerOptions.fillColor = 'black';
+                        markerOptions.fillOpacity = 0.9;
+                        markerOptions.weight = 3;
+                    }
+
+                    const currentMarker = L.circleMarker(locations[currentLoc], markerOptions).addTo(routeLayer);
+                    markers.push(currentMarker);
+
+                    if (index > 0) {
+                        const line = L.polyline([locations[route[index - 1]], locations[currentLoc]], {
+                            color: 'blue',
+                            weight: 4,
+                            opacity: 0.8
+                        }).addTo(routeLayer);
+                    }
+
+                    if (nextLoc) {
+                        const line = L.polyline([locations[currentLoc], locations[nextLoc]], {
+                            color: 'blue',
+                            weight: 4,
+                            opacity: 0.8
+                        }).addTo(routeLayer);
+                    }
+
+                    updateSidebarActiveLocation(currentLoc);
+                    index++;
+                    setTimeout(nextStep, 1500);
+                }
+            }
+
+            nextStep();
+        }
+
+        // Route button event listeners
+        document.getElementById('route1Button').addEventListener('click', function() {
+            updateRouteStepByStep(route1, true);
+        });
+
+        document.getElementById('route2Button').addEventListener('click', function() {
+            updateRouteStepByStep(route2, true);
+        });
+
+        document.getElementById('route3Button').addEventListener('click', function() {
+            updateRouteStepByStep(route3, true);
+        });
+
+        // Dijkstra algorithm implementation
+        function dijkstra(graph, start, goal) {
+            var distances = {};
+            var prev = {};
+            var pq = [];
+
+            Object.keys(graph).forEach(function(node) {
+                distances[node] = Infinity;
+                prev[node] = null;
+            });
+
+            distances[start] = 0;
+            pq.push([start, 0]);
+
+            while (pq.length > 0) {
+                pq.sort(function(a, b) { return a[1] - b[1]; });
+                var smallest = pq.shift()[0];
+
+                if (smallest === goal) {
+                    var path = [];
+                    var u = goal;
+
+                    while (prev[u]) {
+                        path.unshift(u);
+                        u = prev[u];
+                    }
+
+                    path.unshift(start);
+                    return path;
+                }
+
+                if (smallest || distances[smallest] !== Infinity) {
+                    for (var neighbor in graph[smallest]) {
+                        var alt = distances[smallest] + graph[smallest][neighbor];
+
+                        if (alt < distances[neighbor]) {
+                            distances[neighbor] = alt;
+                            prev[neighbor] = smallest;
+                            pq.push([neighbor, distances[neighbor]]);
+                        }
+                    }
+                }
+            }
+
+            return [];
+        }
+
+        // A* algorithm implementation
+        function heuristic(a, b) {
+            var lat1 = locations[a][0];
+            var lon1 = locations[a][1];
+            var lat2 = locations[b][0];
+            var lon2 = locations[b][1];
+            var R = 6371; // Radius of the Earth in km
+            var dLat = (lat2 - lat1) * Math.PI / 180;
+            var dLon = (lon2 - lon1) * Math.PI / 180;
+            var c = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            var d = R * 2 * Math.atan2(Math.sqrt(c), Math.sqrt(1 - c));
+            return d;
+        }
+
+        function aStar(graph, start, goal) {
+            var openSet = new Set([start]);
+            var cameFrom = {};
+            var gScore = {};
+            var fScore = {};
+
+            Object.keys(graph).forEach(function(node) {
+                gScore[node] = Infinity;
+                fScore[node] = Infinity;
+            });
+
+            gScore[start] = 0;
+            fScore[start] = heuristic(start, goal);
+
+            while (openSet.size > 0) {
+                var current = Array.from(openSet).reduce(function(lowest, node) {
+                    return fScore[node] < fScore[lowest] ? node : lowest;
+                }, Array.from(openSet)[0]);
+
+                if (current === goal) {
+                    var path = [];
+                    var temp = current;
+
+                    while (cameFrom[temp]) {
+                        path.unshift(temp);
+                        temp = cameFrom[temp];
+                    }
+
+                    path.unshift(start);
+                    return path;
+                }
+
+                openSet.delete(current);
+
+                for (var neighbor in graph[current]) {
+                    var tentativeGScore = gScore[current] + graph[current][neighbor];
+
+                    if (tentativeGScore < gScore[neighbor]) {
+                        cameFrom[neighbor] = current;
+                        gScore[neighbor] = tentativeGScore;
+                        fScore[neighbor] = gScore[neighbor] + heuristic(neighbor, goal);
+
+                        if (!openSet.has(neighbor)) {
+                            openSet.add(neighbor);
+                        }
+                    }
+                }
+            }
+
+            return [];
+        }
+
+        // Optimal route buttons
+        document.getElementById('optimalButtonDijkstra').addEventListener('click', function() {
+            var optimalRoute = dijkstra(graph, 'Delhi', 'Noida Sector 37');
+            updateRouteStepByStep(optimalRoute, true);
+        });
+
+        document.getElementById('optimalButtonAStar').addEventListener('click', function() {
+            var optimalRoute = aStar(graph, 'Delhi', 'Noida Sector 37');
+            updateRouteStepByStep(optimalRoute, true);
+        });
+    </script>
+</body>
+</html>

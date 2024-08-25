@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Route Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        Your Header
+    </div>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Routes</h2>
+            <button class="routeButton" id="route1Button">Route 1</button>
+            <button class="routeButton" id="route2Button">Route 2</button>
+            <button class="routeButton" id="route3Button">Route 3</button>
+            <h2>Optimal Route</h2>
+            <button class="optimalButton" id="optimalButtonDijkstra">Optimal Route (Dijkstra)</button>
+            <button class="optimalButton" id="optimalButtonAStar">Optimal Route (A*)</button>
+            <h2>Locations</h2>
+            <ul id="locationList"></ul>
+        </div>
+        <div id="map">
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

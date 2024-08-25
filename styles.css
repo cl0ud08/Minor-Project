@@ -1,0 +1,222 @@
+/* Basic Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body and General Styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #1a1a1a; /* Blackish background for a sleek look */
+    color: #e0e0e0; /* Light matte white text color for readability */
+}
+
+/* Header Styling */
+.header {
+    background:  #060f2c;  /* Gradient from dark purple to lighter purple */
+    color: #878376; /* White text color for contrast */
+    text-align: center;
+    padding: 20px;
+    font-size: 40px;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+}
+
+/* Container Styling */
+/* Container Styling */
+.container {
+    display: flex;
+    height: calc(100vh - 60px); /* Adjust height to account for header */
+    border-top: 1px solid #2e2e2e; /* Dark border to separate header from content */
+    flex-direction: row-reverse; /* Move the sidebar to the right */
+}
+
+/* Sidebar Styling */
+.sidebar {
+    width: 300px;
+    background: linear-gradient(#140f17, hsl(240, 8%, 3%)); /* Gradient from dark purple to lighter purple */
+    padding: 20px;
+    overflow-y: auto;
+    position: relative;
+    border-left: 1px solid #070505; /* Border on the left side for definition */
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Space between sidebar items */
+}
+
+/* Map Container Styling */
+#map {
+    flex: 1;
+    position: relative;
+}
+
+
+/* Sidebar Headings */
+.sidebar h2 {
+    border-bottom: 2px solid #6a626b; /* Matte purple underline */
+    color: #c9bdca;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    font-size: 18px; /* Larger font size for headings */
+    font-weight: bold; /* Bold headings for emphasis */
+}
+
+/* Buttons Styling */
+.routeButton, .optimalButton {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 5px;
+    color: #bc7777; /* White text color */
+    background: #060f2c; /* Matte black button color */
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Shadow for button depth */
+}
+
+.routeButton:hover, .optimalButton:hover {
+    background: #2e2e2e; /* Slightly lighter matte black on hover */
+    transform: scale(1.05);
+}
+
+.optimalButton {
+    background: #2e1f2d; /* Dark matte purple for optimal route buttons */
+}
+
+.optimalButton:hover {
+    background: #2e2e2e; /* Lighter matte purple for optimal buttons on hover */
+}
+
+/* List Styling */
+ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+#locationList li {
+    padding: 10px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: color 0.3s, background 0.3s;
+    border-radius: 5px;
+    background: #1f1f1f; /* Matte black background for list items */
+    display: flex;
+    align-items: center; /* Align items vertically */
+    justify-content: space-between; /* Space between text and icons */
+}
+
+#locationList li:hover {
+    background: #560921; /* Slightly lighter black on hover */
+    color: #4a2d4d; /* Matte purple accent color on hover */
+}
+
+#locationList li.active {
+    background: #359838; /* Highlight color for active item */
+    color: #ffffff; /* White text color */
+}
+
+/* Map Container Styling */
+#map {
+    flex: 1;
+    position: relative;
+}
+
+/* Traffic Alert Styling */
+#trafficAlert {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    background-color: rgba(255, 0, 0, 0.8); /* More visible red alert */
+    color: #ffffff; /* White text color */
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Shadow for depth */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        border-right: none; /* Remove border on small screens */
+    }
+    
+    .container {
+        flex-direction: column;
+    }
+
+    #map {
+        height: 400px; /* Adjust as needed for smaller screens */
+    }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 12px; /* Width of the scrollbar */
+}
+
+::-webkit-scrollbar-track {
+    background: #1f1f1f; /* Dark background for the track */
+    border-radius: 10px; /* Rounded corners */
+}
+
+::-webkit-scrollbar-thumb {
+    background: #2e2e2e; /* Matte grey for the scrollbar thumb */
+    border-radius: 10px; /* Rounded corners */
+    transition: background 0.3s; /* Smooth transition */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #3e3e3e; /* Lighter grey on hover */
+}
+.optimalRouteContainer {
+    position: relative;
+    display: inline-block;
+}
+
+.optimalButton {
+    background-color: #5a642a; /* Green background */
+    border: none;
+    color: white; /* White text */
+    padding: 10px 20px; /* Padding */
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 4px;
+    position: relative; /* Position relative for dropdown arrow */
+}
+
+.dropdown-arrow {
+    margin-left: 10px;
+    color: #171a17;
+}
+
+.optimalSelect {
+    display: none; /* Hidden by default */
+    position: absolute;
+    top: 100%; /* Position below the button */
+    left: 0;
+    background-color: rgb(221, 210, 226);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    font-size: 16px;
+    padding: 5px;
+    color: #0e0f0e;
+}
+
+.optimalRouteContainer:hover .optimalSelect {
+    display: block; /* Show dropdown on hover */
+}
+
